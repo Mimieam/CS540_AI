@@ -14,8 +14,8 @@ import logging.handlers
 import traceback
 from sef import sef
 
-logger = logging.getLogger("Animal_checker")
-logger.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger("Animal_checker")
+LOGGER.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
 fh = logging.FileHandler("animal_checker.log")
 fh.setLevel(logging.DEBUG)
@@ -26,9 +26,9 @@ ch.setLevel(logging.ERROR)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)
 fh.setFormatter(formatter)
-# add the handlers to logger
-logger.addHandler(ch)
-logger.addHandler(fh)
+# add the handlers to LOGGER
+LOGGER.addHandler(ch)
+LOGGER.addHandler(fh)
 
 
 INITIAL_LOCATIONS = {
@@ -51,6 +51,9 @@ INITIAL_LOCATIONS = {
 
 
 class InvalidMoveException(Exception):
+    pass
+
+class OutOfBoardException(Exception):
     pass
 
 class DeadAnimalException(Exception):
@@ -95,12 +98,16 @@ def get_neighbor(cur_row, cur_col):
         'down': (cur_row+1, cur_col) if in_board(cur_row+1, cur_col) else None
     }
 
+# def parse_raw_input(game_obj, input):
+#     if len(input)>=3:
+#         game.move(p2.mouse, "down")
+
 
 class Animal(object):
     """docstring for Animal"""
     def __init__(self, _type, owner=None, verbose=False):
         self._type = _type
-        self._capturable = ['Den']
+        self._capturable = ['den']
         self._verbose = verbose
         self.position = None
         self.location = None
@@ -124,7 +131,7 @@ class Animal(object):
             # print "other_animal", other_animal,  self._verbose
             return self.can_capture(other_animal)
         else:
-            print self.can_capture(other_animal)
+            # print self.can_capture(other_animal)
             return True
 
     def get_initial_location(self):
@@ -140,17 +147,17 @@ class Animal(object):
 
             cur_row, cur_col = get_xy_coordinates(self.location)[::-1]
             if not (new_row and new_col):
-                print "%s - %s" % (new_row, new_col)
+                # print "%s - %s" % (new_row, new_col)
                 new_row, new_col = get_xy_coordinates(new_location)[::-1]
             #  left, up , right , down
-            print cur_row, cur_col
-            print new_row, new_col
+            # print cur_row, cur_col
+            # print new_row, new_col
 
             _neighbor = get_neighbor(cur_row, cur_col)
             self.neighbor = []
             [self.neighbor.append(item) for item in _neighbor.values() if item]
             # print _neighbor, neighbor
-            print [get_alpha_numeric_coordinates(*x) for x in self.neighbor]
+            # print [get_alpha_numeric_coordinates(*x) for x in self.neighbor]
             return ((new_row, new_col) in self.neighbor, (new_row, new_col))
         except Exception, e:
             # print str(traceback.format_exception_only(type(e), e)[0])
@@ -180,6 +187,7 @@ class Animal(object):
             return get_alpha_numeric_coordinates(*_nb[direction])
         else:
             print '[%s](%s) can\'t move %s' % (self._type, self.owner, direction)
+            raise OutOfBoardException("[%s](%s) Attempted to move outside the board..." % (self._type, self.owner))
 
     def is_captured(self):
         self.is_dead = True
@@ -199,6 +207,10 @@ class Den(Animal):
         self._capturable = []
     def __repr__(self):
         return '%s' % ('DEN' if self.owner.lower() == 'player1' else 'den')
+
+    def is_captured(self):
+        print  "Den Captured"
+        self.is_dead = True
 
 
 class Wolf(Animal):
@@ -254,16 +266,21 @@ class AnimalChecker(object):
         self.player = []
         self.setup()
         self.plys = 0
+        self.is_gameover = False
 
     def setup(self):
 
         self._board = self.build_board()
         self.players = self.init_players()
         for _player in self.players:
-            self._move_animal(_player.tiger, _player.tiger.get_initial_location())
-            self._move_animal(_player.mouse, _player.mouse.get_initial_location())
-            self._move_animal(_player.wolf, _player.wolf.get_initial_location())
-            self._move_animal(_player.elephant, _player.elephant.get_initial_location())
+            self._move_animal(_player.tiger,
+                              _player.tiger.get_initial_location())
+            self._move_animal(_player.mouse,
+                              _player.mouse.get_initial_location())
+            self._move_animal(_player.wolf,
+                              _player.wolf.get_initial_location())
+            self._move_animal(_player.elephant,
+                              _player.elephant.get_initial_location())
 
             self._set_den(_player)
 
@@ -321,10 +338,13 @@ class AnimalChecker(object):
         try:
             # print "adding to board {%s,%s} = %s(%s)" % (row, col, content, content.owner)
             self._board[row - 1][col - 1] = content
-        except IndexError:
+        except IndexEzrror:
             raise InvalidMoveException
 
-
+    def _check_winner_state(self, hunter, pray):
+        if isinstance(pray, Den):
+            print "WE HAVE A WINNER !!", hunter.owner.upper(), "WON !!"
+            self.is_gameover = True
 
     def _move_animal(self, animal, where):
         ''' each animal keep track of it's last position '''
@@ -342,14 +362,18 @@ class AnimalChecker(object):
     def move(self, animal, direction):
         '''Syntactic sugar to conveniently use directions instead of coordinates'''
         try:
-             new_location = animal._move(direction)
-             if new_location:
-                return self._move(animal, new_location)
-        except Exception:
-            print traceback.format_exc()
+            if animal.owner is self._find_whose_turn():
+                new_location = animal._move(direction)
+                if new_location:
+                    return self._move(animal, new_location)
+        except OutOfBoardException, e:
+            print str(e)
 
     def _move(self, who, new_location):
         try:
+            if self.is_gameover:
+                print ("Game Over")
+                return False
             cur_player = self._find_whose_turn()
             if who.owner is not cur_player:
                 print ("Waiting on %s to play ..." % cur_player)
@@ -378,6 +402,8 @@ class AnimalChecker(object):
                 self._move_animal(who, new_location)
             self.plys +=1
             self.display_board()
+            # check Winning state
+            self._check_winner_state(who, animal_on_tile);
             return True
         except Exception, e:
             print traceback.format_exc(e)
@@ -387,75 +413,40 @@ class AnimalChecker(object):
 
 
 try:
-    # T = Tiger(verbose=True)
-    # E = Elephant(verbose=True)
-    # W = Wolf(verbose=True)
-    # M = Mouse(verbose=True)
-
-    # Player1 = Player('player1')
-    # Player2 = Player('player2')
-
-    # # print Player1.tiger
-    # # print Player1.wolf
-    # # print T.capturable
-    # # print T.can_capture('elephant')
-    # # print T.can_capture('WOLF')
-    # # print T > E , T > W, T > M
-    # # print E > T, E > M
-    # # print T.get_symbol()
-    # # print M.get_symbol()
-
-    # # print '%s' % T
     game = AnimalChecker(rows=9, cols=7)
     # game.setup()
     p1, p2 = game.get_players()
     print game.display_board()
     # game._move(p1.tiger, "6h")
     # game._move(p2.wolf, "6b")
-    game._move(p1.mouse, "5i")  # ai moves
-    game.move(p1.mouse, "up")  # human moves
-    game.move(p2.mouse, "down")
-    game.move(p1.mouse, "up")
-    game.move(p2.mouse, "down")
-    game.move(p1.mouse, "up")
-    game.move(p2.mouse, "down")
-    game.move(p2.tiger, "down")
-    game.move(p1.mouse, "up")
-    game.move(p2.mouse, "down")
-    # print p2.wolf._move("left")
-    # print p2.wolf._move("up")
-    # print p2.wolf._move("right")
-    # print p2.wolf._move("down")
-    # game.move(p2.wolf, "6d")
-    # game.move(p1.wolf, "6e")
-    # game.move(p2.wolf, "6f")
-    # game.move(p1.wolf, "6g")
-    # game.move(p1.tiger, "6g")
-    # game.move(p2.wolf, "7g")
-    # print game.display_board()
-    # game.move(Player1.tiger, '4g')
-    # # print game.move(Player1.wolf, '3g')
-    # # game.move(Player1.mouse, '7b')
-    # game.move(Player2.mouse, '5b')
-    # game.move(Player1.mouse, '5i')
-    # print Player1.mouse.location
-    # print Player1.mouse.can_move_to('7b')
-    # print Player1.mouse.can_move_to('5c')
+    #
+    for step in xrange(1,20):
+        game.move(p1.mouse,"up")
+        game.move(p2.mouse,"down")
 
-    # # game.move(Player2.mouse, '3b')
-    # # game.move(Player2.elephant, '4b')
-    # print Player1.mouse.location
+    game._move(p2.mouse, "5i")  # ai moves
+    # game.move(p1.mouse, "up")  # human moves
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "right")
+    # game.move(p2.mouse, "up")
+    # game.move(p1.tiger, "right")
+    # game.move(p2.mouse, "right")
+    # game.move(p1.mouse, "up")
+    # game.move(p2.mouse, "up")
 
-    # # print game.move(Player1.tiger, '3b')
-    # # print game.move('T', '3g')
-    # # print game.move('M', '4g')
-    # # # print game.add_to_board(*get_xy_coordinates('2a')[::-1], content="T")
-    # print game.display_board()
-
-    # print get_xy_coordinates('2a')
-    # print get_xy_coordinates('2a')[::-1]
-    # print get_alpha_numeric_coordinates(2, 1)
-    # print get_alpha_numeric_coordinates(*get_xy_coordinates('2a'))
-    # print get_xy_coordinates(get_alpha_numeric_coordinates(5, 3))
 except InvalidMoveException:
     print "Invalid Move, please try again"
