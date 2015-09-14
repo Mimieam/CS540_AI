@@ -21,7 +21,7 @@ fh = logging.FileHandler("animal_checker.log")
 fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
+ch.setLevel(logging.DEBUG)
 # create formatter and add it to the handlers
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)
@@ -329,7 +329,9 @@ class AnimalChecker(object):
             board_str += '%s\n' % curren_col
 
         board_str += "\n[======================================]\n"
-        print board_str
+        LOGGER.info(board_str)
+        return board_str
+
 
     def get_item_at(self, row, col):
         return self._board[row - 1][col - 1]
@@ -376,7 +378,7 @@ class AnimalChecker(object):
                 return False
             cur_player = self._find_whose_turn()
             if who.owner is not cur_player:
-                print ("Waiting on %s to play ..." % cur_player)
+                LOGGER.warning("Waiting on %s to play ..." % cur_player)
                 self.display_board()
                 return False
 
@@ -416,7 +418,7 @@ try:
     game = AnimalChecker(rows=9, cols=7)
     # game.setup()
     p1, p2 = game.get_players()
-    print game.display_board()
+    game.display_board()
     # game._move(p1.tiger, "6h")
     # game._move(p2.wolf, "6b")
     #
