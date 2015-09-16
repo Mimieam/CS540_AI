@@ -1,46 +1,54 @@
 from AnimalChecker import *
 try:
-    # T = Tiger(verbose=True, owner=Player('testPlayer').name)
-    # E = Elephant(verbose=True, owner=Player('testPlayer').name)
-    # W = Wolf(verbose=True, owner=Player('testPlayer').name)
-    # M = Mouse(verbose=True, owner=Player('testPlayer').name)
-    # D = Den(verbose=True, owner=Player('testPlayer2').name)
+    T = Tiger(verbose=True, owner=Player('testPlayer').name)
+    E = Elephant(verbose=True, owner=Player('testPlayer').name)
+    W = Wolf(verbose=True, owner=Player('testPlayer').name)
+    M = Mouse(verbose=True, owner=Player('testPlayer').name)
+    D = Den(verbose=True, owner=Player('testPlayer2').name)
 
-    # Player1 = Player('player1')
-    # Player2 = Player('player2')
+    Player1 = Player('player1')
+    Player2 = Player('player2')
 
-    # print Player1.tiger
-    # print Player1.wolf
-    # # print T.can_capture('elephant')
-    # # print T.can_capture('WOLF')
-    # print E._capturable
-    # print E > D
-    # print W > D
-    # print T > D
-    # print M > D
-    # print T > E
-    # print E > T, E > M
+    print Player1.tiger
+    print Player1.wolf
+    # print T.can_capture('elephant')
+    # print T.can_capture('WOLF')
+    print E > D
+    print W > D
+    print T > D
+    print M > D
+    print T > E
+    print E > T, E > M
 
     # print T.get_symbol()
     # print M.get_symbol()
 
     # # print '%s' % T
     game = AnimalChecker(rows=9, cols=7)
-    # game.setup()
+    game.setup()
     p1, p2 = game.get_players()
     print game.display_board()
-    # game._move(p1.tiger, "6h")
-    # game._move(p2.wolf, "6b")
-    game._move(p1.mouse, "5i")  # ai moves
-    game.move(p1.mouse, "up")  # human moves
-    game.move(p2.mouse, "down")
-    game.move(p1.mouse, "up")
-    game.move(p2.mouse, "down")
-    game.move(p1.mouse, "up")
-    game.move(p2.mouse, "down")
-    game.move(p2.tiger, "down")
-    game.move(p1.mouse, "up")
-    game.move(p2.mouse, "down")
+    print p1.tiger.get_location()
+    print p1.tiger._row_col_location
+    print p2.den.location
+    print p2.den._row_col_location
+    print p1.tiger.distance_from(p2.den)
+    print p1.tiger.distance_from(p2.mouse)
+    print p1.tiger.distance_from(p2.elephant)
+    # p2.wolf.is_dead = True
+    print p1.tiger.distance_from(p2.wolf)
+    # # game._move(p1.tiger, "6h")
+    # # game._move(p2.wolf, "6b")
+    # game._move(p1.mouse, "5i")  # ai moves
+    # game.move(p1.mouse, "up")  # human moves
+    # game.move(p2.mouse, "down")
+    # game.move(p1.mouse, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.mouse, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p2.tiger, "down")
+    # game.move(p1.mouse, "up")
+    # game.move(p2.mouse, "down")
     # print p2.wolf._move("left")
     # print p2.wolf._move("up")
     # print p2.wolf._move("right")
