@@ -1,4 +1,9 @@
 from AnimalChecker import *
+from sef import _sef
+import copy
+
+
+
 try:
     T = Tiger(verbose=True, owner=Player('testPlayer').name)
     E = Elephant(verbose=True, owner=Player('testPlayer').name)
@@ -9,16 +14,16 @@ try:
     Player1 = Player('player1')
     Player2 = Player('player2')
 
-    print Player1.tiger
-    print Player1.wolf
-    # print T.can_capture('elephant')
-    # print T.can_capture('WOLF')
-    print E > D
-    print W > D
-    print T > D
-    print M > D
-    print T > E
-    print E > T, E > M
+    # print Player1.tiger
+    # print Player1.wolf
+    # # print T.can_capture('elephant')
+    # # print T.can_capture('WOLF')
+    # print E > D
+    # print W > D
+    # print T > D
+    # print M > D
+    # print T > E
+    # print E > T, E > M
 
     # print T.get_symbol()
     # print M.get_symbol()
@@ -27,16 +32,43 @@ try:
     game = AnimalChecker(rows=9, cols=7)
     game.setup()
     p1, p2 = game.get_players()
-    print game.display_board()
-    print p1.tiger.get_location()
-    print p1.tiger._row_col_location
-    print p2.den.location
-    print p2.den._row_col_location
-    print p1.tiger.distance_from(p2.den)
-    print p1.tiger.distance_from(p2.mouse)
-    print p1.tiger.distance_from(p2.elephant)
-    # p2.wolf.is_dead = True
-    print p1.tiger.distance_from(p2.wolf)
+
+    # print game.display_board()
+    # print p1.tiger.get_location()
+    # print p1.tiger._row_col_location
+    # print p2.den.location
+    # print p2.den._row_col_location
+    # print p1.tiger.distance_from(p2.den)
+    # print p1.tiger.distance_from(p2.mouse)
+    # print p1.tiger.distance_from(p2.elephant)
+    # # p2.wolf.is_dead = True
+    # print p1.tiger.distance_from(p2.wolf)
+    # print p1.tiger.distance_from(p1.den)
+    print game
+    game_copy = _sef(game.get_current_game_state())
+    cp1, cp2 = game_copy.get_players()
+    print p1 is cp1
+    print cp1.tiger.distance_from(cp2.tiger)
+    game_copy.display_board()
+    game_copy.move(cp1.tiger, "up")
+    game.display_board()
+    game._board = copy.deepcopy(game_copy._board)
+    game.display_board()
+    print p1.tiger.distance_from(p2.tiger)
+    game_copy.move(cp2.mouse, "right")
+    game_copy.move(cp1.mouse, "right")
+    game_copy.display_board()
+    print game_copy.last_move.get_move_log()
+    game_copy.undo()
+    print game_copy.last_move.get_move_log()
+    game_copy.display_board()
+    print cp1.tiger.distance_from(cp2.tiger)
+
+
+    # test board copy
+
+
+
     # # game._move(p1.tiger, "6h")
     # # game._move(p2.wolf, "6b")
     # game._move(p1.mouse, "5i")  # ai moves

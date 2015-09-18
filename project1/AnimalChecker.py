@@ -12,7 +12,7 @@
 import logging
 import logging.handlers
 import traceback
-from sef import sef
+from sef import sef, move_tracker
 
 LOGGER = logging.getLogger("Animal_checker")
 LOGGER.setLevel(logging.DEBUG)
@@ -35,8 +35,8 @@ INITIAL_LOCATIONS = {
     'player1':{
         'M': '6i',
         'E': '2i',
-        'T': '5h',
-        # 'T': '4b',
+        # 'T': '5h',
+        'T': '4b',
         'W': '3h',
         'DEN': '4i',
     },
@@ -202,7 +202,7 @@ class Animal(object):
     def _move(self, direction):
         ''' Syntatic Sugar function  to be able to move in any direction without entering the coordinates'''
         _nb =  get_neighbor(*get_xy_coordinates(self.location)[::-1])
-        print '[%s](%s) attemp to move to %s' % (self._type, self.owner, direction)
+        print '[%s](%s) attempt to move to %s' % (self._type, self.owner, direction)
         if _nb[direction]:
             return get_alpha_numeric_coordinates(*_nb[direction])
         else:
@@ -302,6 +302,7 @@ class AnimalChecker(object):
         self.setup()
         self.plys = 0
         self.is_gameover = False
+        self.last_move = move_tracker(self)
 
     def setup(self):
 
@@ -378,6 +379,7 @@ class AnimalChecker(object):
         try:
             # print "adding to board {%s,%s} = %s(%s)" % (row, col, content, content.owner)
             self._board[row - 1][col - 1] = content
+
         except IndexError:
             raise InvalidMoveException
 
@@ -420,7 +422,7 @@ class AnimalChecker(object):
                 LOGGER.warning("Waiting on %s to play ..." % cur_player)
                 self.display_board()
                 return False
-
+            old_location = who.location
             status, (row, col) = who.can_move_to(new_location)
             # print status
             if not status:
@@ -443,6 +445,7 @@ class AnimalChecker(object):
                 self._move_animal(who, new_location)
 
             self.plys +=1
+            self.last_move.update(who, old_location, new_location, animal_on_tile)
             self.display_board()
             # check Winning state
             self._check_winner_state(who, animal_on_tile);
@@ -453,6 +456,10 @@ class AnimalChecker(object):
             return False
             # raise e
 
+    def undo(self):
+        ''' undo a move using the move_tracker plugin '''
+        print self.last_move
+        self.last_move.revert()
 
 if __name__ == '__main__':
 
@@ -464,8 +471,8 @@ if __name__ == '__main__':
         # game._move(p1.tiger, "6h")
         # game._move(p2.wolf, "6b")
         # game simulation
-        get_user_input_and_make_move()
-        for step in xrange(0,3):
+        # get_user_input_and_make_move()
+        for step in xrange(0,30):
             LOGGER.debug(id(game.get_current_game_state()))
             # animals[random.randint(0, 3)]
             animal, location = AI_getBestMove(game.get_current_game_state())
