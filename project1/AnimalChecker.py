@@ -293,7 +293,7 @@ class Player(object):
 
 class AnimalChecker(object):
     """docstring for AnimalChecker"""
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, starting_player=1):
         self.rows = rows
         self.cols = cols
         self._board = []
@@ -301,6 +301,7 @@ class AnimalChecker(object):
         self.player = []
         self.setup()
         self.plys = 0
+        self.starting_player = starting_player if starting_player in [1,2] else 1
         self.is_gameover = False
         self.last_move = move_tracker(self)
 
@@ -333,7 +334,8 @@ class AnimalChecker(object):
                                content=player.den)  # remote  animal from previous location on board
 
     def _find_whose_turn(self):
-        return self.players[self.plys % 2].name
+        print (self.plys + self.starting_player - 1) % 2
+        return self.players[(self.plys + self.starting_player - 1) % 2 ].name
 
     def get_players(self):
         return self.players
@@ -349,20 +351,23 @@ class AnimalChecker(object):
                 _board[row].append('   ')
         return _board
 
-    def display_board(self):
+    def display_board(self, raw = False):
         current_player = self._find_whose_turn()
         board_str = "\n[==============( %s Turn - total moves = %s )==============]\n\n" % (current_player, self.plys)
         for row_index in xrange(0, len(self._board)):
             row = self._board[row_index]
 
             curren_col = ''
-            if(row_index == 0):  # just to display the first header line
-                curren_col += '   |'
-                for col_index in xrange(0, len(self._board[row_index])):
-                    curren_col += ' ' + str(col_index + 1) + ' |'
-                curren_col += '\n'
+            if not raw:
+                if(row_index == 0):  # just to display the first header line
+                    curren_col += '   |'
+                    for col_index in xrange(0, len(self._board[row_index])):
+                        curren_col += ' ' + str(col_index + 1) + ' |'
+                    curren_col += '\n'
 
-            curren_col += '' + self._y_arr[row_index] + "->|"
+                curren_col += '' + self._y_arr[row_index] + "->|"
+            else:
+                curren_col = '|'
             for col in row:
                 curren_col += '' + str(col) + '|'
              # curren_col
@@ -409,6 +414,8 @@ class AnimalChecker(object):
                 new_location = animal._move(direction)
                 if new_location:
                     return self._move(animal, new_location)
+            # else:
+            #     LOGGER.warning("Waiting on %s to play ..." % self._find_whose_turn())
         except OutOfBoardException, e:
             print str(e)
 
@@ -464,7 +471,7 @@ class AnimalChecker(object):
 if __name__ == '__main__':
 
     try:
-        game = AnimalChecker(rows=9, cols=7)
+        game = AnimalChecker(rows=9, cols=7, starting_player=1)
         # game.setup()
         p1, p2 = game.get_players()
         game.display_board()
@@ -479,13 +486,13 @@ if __name__ == '__main__':
             while not game.move(p1[animal], location):
                 animal, location = AI_getBestMove(game.get_current_game_state())
 
+            # game.ai move
 
             animal2, location2 = AI_getBestMove(game.get_current_game_state())
             while not game.move(p2[animal2], location2):
                 animal2, location2 = AI_getBestMove(game.get_current_game_state())
             LOGGER.debug("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++CUrrent step COUNT = %s " % step)
             # game.move(p2["mouse"],"down")
-            # game.ai move
 
         game._move(p2.mouse, "5i")  # ai moves
         # game.move(p1.mouse, "up")  # human moves

@@ -29,7 +29,7 @@ try:
     # print M.get_symbol()
 
     # # print '%s' % T
-    game = AnimalChecker(rows=9, cols=7)
+    game = AnimalChecker(rows=9, cols=7, starting_player=2)
     game.setup()
     p1, p2 = game.get_players()
 
@@ -51,6 +51,10 @@ try:
     print cp1.tiger.distance_from(cp2.tiger)
     game_copy.display_board()
     game_copy.move(cp1.tiger, "up")
+    game_copy.move(cp1.tiger, "up")
+    game_copy.move(cp1.tiger, "up")
+    game_copy.move(cp1.tiger, "up")
+    game_copy.move(cp1.tiger, "up")
     # game.display_board()
     game._board = copy.deepcopy(game_copy._board)
     # game.display_board()
@@ -62,9 +66,14 @@ try:
     game_copy.undo()
     game_copy.undo()
     game_copy.undo()
-    # game_copy.undo()
+    game_copy.undo()
+    game_copy.undo()
+    game_copy.undo()
     print game_copy.last_move.get_move_log()
     game_copy.display_board()
+    raw_board = game_copy.display_board(True)
+    print raw_board.replace('   ', '.').replace(' ', '').replace('den','d').replace('DEN','D').replace('|','').strip()
+
     print cp1.tiger.distance_from(cp2.tiger)
 
 

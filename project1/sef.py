@@ -1,6 +1,5 @@
 import random
 import copy
-from Queue import Queue
 
 # This class create a deepCopy of our board object and add the undo functionality to it
 # now we can make any change in your staged board without affecting the original one.
@@ -40,9 +39,12 @@ class move_tracker(object):
         self.captured.is_dead = False
 
     def revert(self):
-
+        ''' return the reverted move'''
         print "rewinding last move..."
         # undo a move
+        if not self.move_log:
+            print "No move to rewind"
+            return
         last_move = self.move_log.pop()  # pop a dictionary representing the last move
         self.game._move_animal(last_move['who'], last_move['from'])
         # revive any Ghost
@@ -52,6 +54,7 @@ class move_tracker(object):
 
         self.curr_move = self.move_log[-1] if self.move_log else []
         self.game.plys -= 1
+        return last_move
 
     def get_move_log(self):
         return self.move_log
