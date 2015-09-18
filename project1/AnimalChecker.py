@@ -36,7 +36,7 @@ INITIAL_LOCATIONS = {
         'M': '6i',
         'E': '2i',
         # 'T': '5h',
-        'T': '4b',
+        'T': '3c',
         'W': '3h',
         'DEN': '4i',
     },

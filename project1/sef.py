@@ -50,6 +50,9 @@ class move_tracker(object):
             last_move['captured'].is_dead = False
             self.game._move_animal(last_move['captured'], last_move['where'])
 
+        self.curr_move = self.move_log[-1] if self.move_log else []
+        self.game.plys -= 1
+
     def get_move_log(self):
         return self.move_log
 
