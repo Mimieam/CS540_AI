@@ -20,19 +20,43 @@ def _sef(board, player, opponent):
     '''
         F(s) = g(s) + h(s) + k(s)
         g = linear distance from den
-        k = distance from enemies
+        k = distance from capturable enemies
+        a = number of piece alive
 
     '''
-    # for player in game.players:
-    #     print player
-    print board.display_board()
+    res = 0
+    # sum of the remaining piece
+    animal_alive=0
     for _animal in player:
-        print opponent.den
-        print player[_animal].distance_from(opponent.den)
+        if not player[_animal].is_dead:
+            animal_alive +=1
+    print animal_alive
+    res += animal_alive
+
+    # sum of the linear distance from each piece to the opponent den
+    distance_from_den = 0
+    for _animal in player:
+        if player[_animal].is_dead:
+            continue
+        print "[%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, opponent.den, player[_animal].distance_from(opponent.den))
+        distance_from_den += player[_animal].distance_from(opponent.den)
+    print distance_from_den
+    res += distance_from_den
+
+    distance_from_all_prays = 0
+    for _animal in player:
+        if player[_animal].is_dead:
+            continue
+        for pray in opponent:
+            print "[%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, pray, player[_animal].distance_from(opponent[pray]))
+        distance_from_all_prays += player[_animal].distance_from(opponent[pray])
+    print distance_from_all_prays
+
+    # sum of the linear distance from each piece to their respective pray
 
 
-
-    return 100
+    res = animal_alive + distance_from_den + distance_from_all_prays
+    return res
 
 def available_moves(player, str_coordinate=None):
         moves = []

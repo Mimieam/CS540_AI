@@ -300,7 +300,7 @@ class Player(object):
         return self.__dict__[key]
 
     def __iter__(self):
-        return iter([item for item in self.__dict__ if item not in ['name']])
+        return iter([item for item in self.__dict__ if item not in ['name', 'den']])
 
 
 class AnimalChecker(object):
