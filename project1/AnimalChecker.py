@@ -53,15 +53,20 @@ INITIAL_LOCATIONS = {
 class InvalidMoveException(Exception):
     pass
 
+
 class OutOfBoardException(Exception):
     pass
+
 
 class DeadAnimalException(Exception):
     pass
 
+
 # HELPERS
 def get_xy_coordinates(xy):
     x = None
+    if isinstance(xy, tuple):
+        return xy
     try:
         if 1 <= int(xy[0]) < 8:
             x = xy[0]
@@ -69,7 +74,7 @@ def get_xy_coordinates(xy):
             raise IndexError
         y = xy[1]
         arr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
-        return (int(x), arr.index(y) + 1)
+        return (arr.index(y) + 1, int(x))
     except (ValueError, IndexError, TypeError, KeyError):
         raise InvalidMoveException("Could not convert input (%s) to {row, col} coordinates" % str(xy))
 
@@ -83,31 +88,31 @@ def get_alpha_numeric_coordinates(y, x):
     except (ValueError, IndexError, TypeError):
         raise InvalidMoveException("Could not convert back {%s, %s} - Out of board range" % (y, x))
 
+
 def in_board(row, col):
-    in_row =  (1 <= int(col) < 8)
-    in_col =  (1 <= int(row) < 10)
-    res =  in_row and in_col
-    # print "in row (1 <= (row:%s) < 8) = %s , (1 <= (col:%s) < 10) = %s  " % (row, in_row, col, in_col)
+    in_row = (1 <= int(col) < 8)
+    in_col = (1 <= int(row) < 10)
+    res = in_row and in_col
+    # print "in row (1 <= (row:%s) < 8) = %s , (1 <= (col:%s) < 10) = %s\
+    #   " % (row, in_row, col, in_col)
     return res
+
 
 def get_neighbor(cur_row, cur_col):
     return {
         'left': (cur_row, cur_col-1) if in_board(cur_row, cur_col-1) else None,
         'up': (cur_row-1, cur_col) if in_board(cur_row-1, cur_col) else None,
-        'right': (cur_row, cur_col+1) if in_board(cur_row, cur_col+1) else None,
-        'down': (cur_row+1, cur_col) if in_board(cur_row+1, cur_col) else None
+        'down': (cur_row+1, cur_col) if in_board(cur_row+1, cur_col) else None,
+        'right': (cur_row, cur_col+1) if in_board(cur_row, cur_col+1) else None
     }
 
-# def parse_raw_input(game_obj, input):
-#     if len(input)>=3:
-#         game.move(p2.mouse, "down")
 
 def AI_getBestMove(current_game_state):
     return sef(current_game_state)
 
+
 def get_user_input_and_make_move():
     """
-
         T down  -> Tiger move down
         M Up  -> mouse move up
         E left -> go left
@@ -134,13 +139,13 @@ class Animal(object):
         self.owner = owner
         self.is_dead = False
         self.neighbor=[]
-        # self.get_initial_location()
 
     def __repr__(self):
         return ' %s ' % (self._type[0].upper() if self.owner.lower() == 'player1' else self._type[0].lower())
 
     def __lt__(self, other_animal):
         if hasattr(self, '_type'):
+
             return other_animal.can_capture(self)
         else:
             return True
@@ -164,10 +169,13 @@ class Animal(object):
             if self.is_dead:
                 raise DeadAnimalException("\nDear %s, \n Sorry I'm dead.\n \t ~love your dead %s" % (self.owner, self._type))
 
-            cur_row, cur_col = get_xy_coordinates(self.location)[::-1]
+            print "new_location", new_location, new_row, new_col
+
+            cur_row, cur_col = get_xy_coordinates(self.location)
             if not (new_row and new_col):
                 # print "%s - %s" % (new_row, new_col)
-                new_row, new_col = get_xy_coordinates(new_location)[::-1]
+                print new_location
+                new_row, new_col = get_xy_coordinates(new_location)
             #  left, up , right , down
             # print cur_row, cur_col
             # print new_row, new_col
@@ -175,8 +183,9 @@ class Animal(object):
             _neighbor = get_neighbor(cur_row, cur_col)
             self.neighbor = []
             [self.neighbor.append(item) for item in _neighbor.values() if item]
-            # print _neighbor, neighbor
-            # print [get_alpha_numeric_coordinates(*x) for x in self.neighbor]
+            print _neighbor, self.neighbor
+            print "(new_row, new_col) in self.neighbor", (new_row, new_col) in self.neighbor
+            print [get_alpha_numeric_coordinates(*x) for x in self.neighbor]
             return ((new_row, new_col) in self.neighbor, (new_row, new_col))
         except Exception, e:
             # print str(traceback.format_exception_only(type(e), e)[0])
@@ -201,7 +210,7 @@ class Animal(object):
 
     def _move(self, direction):
         ''' Syntatic Sugar function  to be able to move in any direction without entering the coordinates'''
-        _nb =  get_neighbor(*get_xy_coordinates(self.location)[::-1])
+        _nb =  get_neighbor(*get_xy_coordinates(self.location))
         print '[%s](%s) attempt to move to %s' % (self._type, self.owner, direction)
         if _nb[direction]:
             return get_alpha_numeric_coordinates(*_nb[direction])
@@ -290,6 +299,9 @@ class Player(object):
         """
         return self.__dict__[key]
 
+    def __iter__(self):
+        return iter([item for item in self.__dict__ if item not in ['name']])
+
 
 class AnimalChecker(object):
     """docstring for AnimalChecker"""
@@ -298,7 +310,7 @@ class AnimalChecker(object):
         self.cols = cols
         self._board = []
         self._y_arr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
-        self.player = []
+        self.players = []
         self.setup()
         self.plys = 0
         self.starting_player = starting_player if starting_player in [1,2] else 1
@@ -329,9 +341,9 @@ class AnimalChecker(object):
     def _set_den(self, player):
         # get den location for this player
         player.den.location = INITIAL_LOCATIONS[player.name]['DEN']  # change location
-        player.den._row_col_location = get_xy_coordinates(player.den.location)[::-1]
-        self._add_to_board(*get_xy_coordinates(player.den.location)[::-1],
-                               content=player.den)  # remote  animal from previous location on board
+        player.den._row_col_location = get_xy_coordinates(player.den.location)
+        # self._add_to_board(*get_xy_coordinates(player.den.location),
+                               # content=player.den)  # remote  animal from previous location on board
 
     def _find_whose_turn(self):
         print (self.plys + self.starting_player - 1) % 2
@@ -351,26 +363,41 @@ class AnimalChecker(object):
                 _board[row].append('   ')
         return _board
 
-    def display_board(self, raw = False):
+    def display_board(self, _board=[], raw=False):
+        if not _board:
+            _board = self._board
         current_player = self._find_whose_turn()
         board_str = "\n[==============( %s Turn - total moves = %s )==============]\n\n" % (current_player, self.plys)
-        for row_index in xrange(0, len(self._board)):
-            row = self._board[row_index]
+        for row_index in xrange(0, len(_board)):
+            row = _board[row_index]
 
             curren_col = ''
             if not raw:
                 if(row_index == 0):  # just to display the first header line
                     curren_col += '   |'
-                    for col_index in xrange(0, len(self._board[row_index])):
+                    for col_index in xrange(0, len(_board[row_index])):
                         curren_col += ' ' + str(col_index + 1) + ' |'
                     curren_col += '\n'
 
                 curren_col += '' + self._y_arr[row_index] + "->|"
             else:
                 curren_col = '|'
-            for col in row:
-                curren_col += '' + str(col) + '|'
-             # curren_col
+
+            # print Den
+            # make a den accessible to own animals
+            for index, col in enumerate(row):
+                if (row_index + 1, index + 1) == get_xy_coordinates(INITIAL_LOCATIONS['player1']["DEN"]):
+                    if isinstance(col, Animal):
+                        curren_col += '*' + str(col).strip() + '*|'
+                    else:
+                        curren_col += 'DEN|'
+                elif (row_index + 1, index +1) == get_xy_coordinates(INITIAL_LOCATIONS['player2']["DEN"]):
+                    if isinstance(col, Animal):
+                        curren_col += '*' + str(col).strip() + '*|'
+                    else:
+                        curren_col += 'den|'
+                else:
+                    curren_col += '' + str(col) + '|'
             board_str += '%s\n' % curren_col
 
         board_str += "\n[======================================]\n"
@@ -397,11 +424,11 @@ class AnimalChecker(object):
         ''' each animal keep track of it's last position '''
         try:
 
-            self._add_to_board(*get_xy_coordinates(animal.location)[::-1],
+            self._add_to_board(*get_xy_coordinates(animal.location),
                                content='   ')  # remote  animal from previous location on board
             animal.location = where  # change location
-            animal._row_col_location = get_xy_coordinates(where)[::-1]  # change location
-            self._add_to_board(*get_xy_coordinates(where)[::-1],
+            animal._row_col_location = get_xy_coordinates(where)  # change location
+            self._add_to_board(*get_xy_coordinates(where),
                                content=animal)  # add animal to new location
         except Exception, e:
             print traceback.format_exc()
@@ -419,19 +446,23 @@ class AnimalChecker(object):
         except OutOfBoardException, e:
             print str(e)
 
-    def _move(self, who, new_location):
+    def _move(self, who, new_location=None, new_row=None, new_col=None):
         try:
             if self.is_gameover:
                 print ("Game Over")
                 return True
+
+            if not new_location:
+                new_location = get_alpha_numeric_coordinates(new_row, new_col)
+
             cur_player = self._find_whose_turn()
             if who.owner is not cur_player:
                 LOGGER.warning("Waiting on %s to play ..." % cur_player)
                 self.display_board()
                 return False
             old_location = who.location
-            status, (row, col) = who.can_move_to(new_location)
-            # print status
+            status, (row, col) = who.can_move_to(new_location, new_row, new_col)
+            print status
             if not status:
                 print ("[%s](%s) can't move to %s" % (who._type, who.owner, new_location))
                 self.display_board()
@@ -444,12 +475,30 @@ class AnimalChecker(object):
                 if (res and (who.owner is not animal_on_tile.owner)):
                     print 'BOOYA! [%s](%s) Captured [%s](%s)' % (who._type, who.owner, animal_on_tile._type, animal_on_tile.owner)
                     animal_on_tile.is_captured()
+                    # self._move_animal(who, new_location)
+                    if new_location:
+                        self._move_animal(who, new_location)
+                    else:
+                        self._move_animal(who,  get_alpha_numeric_coordinates(new_row, new_col))
+
+                else:
+                    if isinstance(animal_on_tile, Den):
+                        print "tring to go in the den"
+                        # self._move_animal(who, new_location)
+                        if new_location:
+                            self._move_animal(who, new_location)
+                        else:
+                            self._move_animal(who,  get_alpha_numeric_coordinates(new_row, new_col))
+
+                    else:
+                        print "can't do this - %s , %s" % (res, who.owner is not animal_on_tile.owner)
+                        return False
+            else:  # tile was empty ... just move up there if you can
+                if new_location:
                     self._move_animal(who, new_location)
                 else:
-                    print "can't do this - %s , %s" % (res, who.owner is not animal_on_tile.owner)
-                    return False
-            else:  # tile was empty ... just move up there if you can
-                self._move_animal(who, new_location)
+                    self._move_animal(who,  get_alpha_numeric_coordinates(new_row, new_col))
+
 
             self.plys +=1
             self.last_move.update(who, old_location, new_location, animal_on_tile)
@@ -478,25 +527,36 @@ if __name__ == '__main__':
         # game._move(p1.tiger, "6h")
         # game._move(p2.wolf, "6b")
         # game simulation
-        # get_user_input_and_make_move()
-        for step in xrange(0,30):
-            LOGGER.debug(id(game.get_current_game_state()))
-            # animals[random.randint(0, 3)]
-            animal, location = AI_getBestMove(game.get_current_game_state())
-            while not game.move(p1[animal], location):
-                animal, location = AI_getBestMove(game.get_current_game_state())
+        # # get_user_input_and_make_move()
+        # for step in xrange(0,30):
+        #     LOGGER.debug(id(game.get_current_game_state()))
+        #     animal2, location2 = AI_getBestMove(game.get_current_game_state())
+        #     while not game.move(p2[animal2], location2):
+        #         animal2, location2 = AI_getBestMove(game.get_current_game_state())
+        #     LOGGER.debug("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++CUrrent step COUNT = %s " % step)
+        #     # game.move(p2["mouse"],"down")
+        #     # animals[random.randint(0, 3)]
+        #     animal, location = AI_getBestMove(game.get_current_game_state())
+        #     while not game.move(p1[animal], location):
+        #         animal, location = AI_getBestMove(game.get_current_game_state())
 
-            # game.ai move
+        #     # game.ai move
 
-            animal2, location2 = AI_getBestMove(game.get_current_game_state())
-            while not game.move(p2[animal2], location2):
-                animal2, location2 = AI_getBestMove(game.get_current_game_state())
-            LOGGER.debug("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++CUrrent step COUNT = %s " % step)
-            # game.move(p2["mouse"],"down")
 
-        game._move(p2.mouse, "5i")  # ai moves
-        # game.move(p1.mouse, "up")  # human moves
-        # game.move(p2.mouse, "down")
+        # game._move(p2.mouse, "5i")  # ai moves
+        game.move(p2.mouse, "right")
+        game.move(p1.mouse, "left")  # human moves
+        game.move(p2.mouse, "right")
+        game.move(p1.mouse, "left")  # human moves
+        game.move(p2.mouse, "right")
+        game.move(p1.mouse, "left")  # human moves
+        game.move(p2.elephant, "left")
+        game.move(p1.mouse, "left")  # human moves
+        game.move(p2.elephant, "left")
+        game.move(p1.mouse, "left")  # human moves
+        game.move(p2.elephant, "down")
+        game.move(p1.mouse, "left")  # human moves
+        game.move(p2.elephant, "left")
         # game.move(p1.tiger, "up")
         # game.move(p2.mouse, "down")
         # game.move(p1.tiger, "up")

@@ -1,0 +1,26 @@
+cs540 The progress report - Animal Checkers Progress report.
+
+My implementation of the Animal Checkers game is done in Python (v2.7)
+I have opted for a non UI implementation at the beginning to get the core functionality done. I designed to code to be modular and easily extendibles.
+So far I have implemented the basic mechanism of the game.
+The Core Class can:
+  - build a board
+  - display a board
+  - make a move
+  - undo a move
+  - check for a winner
+
+  The undo move is implemented in a separate module which has also keep track of all the played move
+
+Each animal Is implemented by it's own class (derived from a man Animal class) and is responsible for 'knowing' which animal it can capture and dynamically compute the distance from it.
+
+The basic mechanics is completed and 2 humans can play the game
+
+I'm currently working on building the state tree and the SEF function.
+I'm having a hard time putting the tree together.
+
+
+
+
+will describe the state of your program at the time the report is due. In particular, you should be able to report the language in which the program will be written and the program's major design features and overall structure. This report should be word-processed and no more than one page long
+

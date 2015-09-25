@@ -1,5 +1,5 @@
 from AnimalChecker import *
-from sef import _sef
+from sef import _sef, StageEvaluationBoard
 import copy
 
 
@@ -59,8 +59,11 @@ try:
     game._board = copy.deepcopy(game_copy._board)
     # game.display_board()
     print p1.tiger.distance_from(p2.tiger)
-    game_copy.move(cp2.mouse, "right")
-    game_copy.move(cp1.mouse, "right")
+    game_copy.move(cp2.mouse, "left")
+    game_copy.move(cp1.mouse, "left")
+    game_copy.move(cp2.mouse, "left")
+    game_copy.move(cp1.mouse, "left")
+    game_copy.move(cp2.mouse, "left")
     game_copy.display_board()
     print game_copy.last_move.get_move_log()
     game_copy.undo()
@@ -70,15 +73,23 @@ try:
     game_copy.undo()
     game_copy.undo()
     print game_copy.last_move.get_move_log()
-    game_copy.display_board()
-    raw_board = game_copy.display_board(True)
+    raw_board = game_copy.display_board(raw=True)
     print raw_board.replace('   ', '.').replace(' ', '').replace('den','d').replace('DEN','D').replace('|','').strip()
 
     print cp1.tiger.distance_from(cp2.tiger)
 
+    print game_copy.last_move.get_move_log()
+    game_copy.last_move.get_board_from_player()
+    for x in game.players:
+        for ani in x:
+            print x['' + ani]
 
     # test board copy
 
+    stage_board = StageEvaluationBoard(game_copy, game_copy._board )
+    # print stage_board.make_move()
+    print stage_board.available_moves(cp1)
+    print stage_board.get_board_state(game_copy)
 
 
     # # game._move(p1.tiger, "6h")
