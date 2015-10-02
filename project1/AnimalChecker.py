@@ -12,7 +12,7 @@
 import logging
 import logging.handlers
 import traceback
-from sef import sef, move_tracker
+from helpers import move_tracker
 
 LOGGER = logging.getLogger("Animal_checker")
 LOGGER.setLevel(logging.DEBUG)
@@ -453,6 +453,7 @@ class AnimalChecker(object):
                 return True
 
             if not new_location:
+                print who, new_location, new_row, new_col
                 new_location = get_alpha_numeric_coordinates(new_row, new_col)
 
             cur_player = self._find_whose_turn()

@@ -44,3 +44,76 @@ def node(state_str="", children=[]):
 
     '''
     return {"state": state_str, "children": children}
+
+
+def get_board_string_state(game):
+    return game.display_board(raw=True).replace('   ', '.')\
+    .replace(' ', '').replace('den','d').replace('DEN','D')\
+    .replace('|','').replace('*', '').strip()
+
+
+# this class sole purpose is to keep track of which move just happened
+# component of the man  Animal checker class
+class move_tracker(object):
+    def __init__(self, game):
+        self.game = game
+        self.curr_move = {}
+        self.move_log = []
+
+    def __repr__(self):
+        return " last move = %s" % self.curr_move
+
+    def update(self, _who, _from, _where, _captured_animal=None):
+        self.curr_move = {
+            'who': _who,
+            'from': _from,
+            'where': _where,
+            'captured': _captured_animal,
+        }
+
+        # append at the end
+        self.move_log.append(self.curr_move)
+        print "(%s)[%s] moved from %s to %s, old content = {%s}" % (_who, _who.owner, _from, _where, _captured_animal)
+
+    def free_captured(self):
+        self.captured.is_dead = False
+
+    def revert(self):
+        ''' return the reverted move'''
+        print "rewinding last move..."
+        # undo a move
+        if not self.move_log:
+            print "No move to rewind"
+            return
+        # pop a dictionary representing the last move
+        last_move = self.move_log.pop()
+        self.game._move_animal(last_move['who'], last_move['from'])
+        # revive any Ghost
+        if last_move['captured'] and not isinstance(last_move['captured'], str):
+            last_move['captured'].is_dead = False
+            self.game._move_animal(last_move['captured'], last_move['where'])
+
+        self.curr_move = self.move_log[-1] if self.move_log else []
+        self.game.plys -= 1
+        return last_move
+
+    def get_move_log(self):
+        return self.move_log
+
+    def get_board_from_player(self, _raw=True):
+        staged_board = []
+        for row in xrange(0, self.game.rows):
+            staged_board.append([])
+            for col in xrange(0, self.game.cols):
+                staged_board[row].append('   ')
+
+        for player in self.game.players:
+            for _animal in player.__dict__ :
+                if _animal not in ['name']:
+                    r, c = player.__dict__[''+_animal]._row_col_location
+                    # print r, c
+                    # print [(player.__dict__[''+_animal]._row_col_location, player.__dict__[''+_animal])for _animal in player.__dict__ if _animal not in ['name']]
+                    staged_board[r-1][c-1] = player.__dict__[''+_animal]
+        # print staged_board
+
+        self.game.display_board(_board=staged_board, raw=_raw)
