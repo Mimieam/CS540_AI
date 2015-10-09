@@ -1,10 +1,13 @@
 from AnimalChecker import *
-from sef import _sef, StageEvaluationBoard
+# from sef import _sef, StageEvaluationBoard
 import copy
 
 
 
 try:
+
+    print get_xy_coordinates('4i')
+    print get_xy_coordinates('4a')
     T = Tiger(verbose=True, owner=Player('testPlayer').name)
     E = Elephant(verbose=True, owner=Player('testPlayer').name)
     W = Wolf(verbose=True, owner=Player('testPlayer').name)
@@ -139,5 +142,39 @@ try:
     # print get_alpha_numeric_coordinates(2, 1)
     # print get_alpha_numeric_coordinates(*get_xy_coordinates('2a'))
     # print get_xy_coordinates(get_alpha_numeric_coordinates(5, 3))
+    #
+    game.move(p2.mouse, "right")
+    game.move(p1.mouse, "left")  # human moves
+    game.move(p2.mouse, "right")
+    game.move(p1.mouse, "left")  # human moves
+    game.move(p2.mouse, "right")
+    game.move(p1.mouse, "left")  # human moves
+    game.move(p2.elephant, "left")
+    game.move(p1.mouse, "left")  # human moves
+    game.move(p2.elephant, "left")
+    game.move(p1.mouse, "left")  # human moves
+    game.move(p2.elephant, "down")
+    game.move(p1.mouse, "left")  # human moves
+    game.move(p2.elephant, "left")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "up")
+    # game.move(p2.mouse, "down")
+    # game.move(p1.tiger, "right")
+    # game.move(p2.mouse, "up")
+    # game.move(p1.tiger, "right")
+    # game.move(p2.mouse, "right")
+    # game.move(p1.mouse, "up")
+    # game.move(p2.mouse, "up")
 except InvalidMoveException:
     print "Invalid Move, please try again"

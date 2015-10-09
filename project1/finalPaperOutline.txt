@@ -1,0 +1,50 @@
+An Introduction to Artificial intelligence and it's challenge using the Animal Checker Game.
+
+Abstract
+Introduction
+
+The field of artificial intelligence
+
+talk about the issues that we are trying to solve
+  - search and representation
+  - board game represented at a 2D array
+  - illustrate with Animal chercker game
+
+
+The game
+ 2 player game where each opponent start with  ( one of which being the AI) are competing to reach their opponent den.
+ - description of the game with picture
+
+
+
+
+Design CHOICES AND FEATURES OF THE PROGRAM
+  language - and why ?
+  python - for rapid prototyping.
+  personal syntax preference ( function closure enforced by indentation and free of curly brackets)
+
+  short definition and how it is used:
+  - small opening book use for the first 5 to 10 ply
+  - heuristic search algorithm
+  -
+  - SEF:
+      - distance from den
+      -
+  - Transposition table
+  - help menu
+  - tracking all game move
+  - alpha beta minimax for the search
+
+using the program
+  - actual game run
+
+THE PROGRAM'S PERFORMANCE
+  - depth
+
+
+Conclusion
+  is it intelligent ?
+  issues
+  room for improvement ?
+
+References
