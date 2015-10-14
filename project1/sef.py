@@ -1,4 +1,3 @@
-
 def distance_from_den (player, opponent):
     dist = 0
     for _animal in player:
@@ -6,7 +5,11 @@ def distance_from_den (player, opponent):
             continue
         distance = player[_animal].distance_from(opponent.den)
         if distance == 1:
-            return 1000
+            distance += 30
+        if distance == 2:
+            distance += 20
+        if distance == 3:
+            distance += 10
         print "[%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, opponent.den, player[_animal].distance_from(opponent.den))
         dist += distance
     return dist  # - because the smaller the distance the better for us
@@ -23,16 +26,12 @@ def can_capture(player, opponent):
     for _animal in player:
         if player[_animal].is_dead:
             continue
-        for pray in opponent:
+        for pray in [pray for pray in opponent if pray != 'den']:
             if not opponent[pray].is_dead:
                 distance = player[_animal].distance_from(opponent[pray])
                 if player[_animal] > opponent[pray] and distance == 1:
                     print "[%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, pray, player[_animal].distance_from(opponent[pray]))
-                    dist += 50
-                    return dist
-                else:
-                    dist -= 10
-    print __name__, dist
+                    dist += 10
     return dist
 
 def can_be_captured(player, opponent):
@@ -40,33 +39,42 @@ def can_be_captured(player, opponent):
     for _animal in player:
         if player[_animal].is_dead:
             continue
-        for pray in opponent:
+        for pray in [pray for pray in opponent if pray != 'den']:
             if not opponent[pray].is_dead:
                 distance = player[_animal].distance_from(opponent[pray])
                 if player[_animal] < opponent[pray] and distance == 1:
-                    print "[%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, pray, distance)
-                    dist -= 10
+                    print "can be can_be_captured [%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, pray, distance)
+                    dist -= 1
                 #     return dist
-                elif player[_animal] < opponent[pray] and distance == 2:
-                    print "[%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, pray, distance)
-                    dist = 10
+                to_den = player[_animal].distance_from(opponent.den)
+                if  player[_animal] < opponent[pray] and distance == 2 == to_den:
+                    print "can_be_captured 2 away- [%s]%s to [%s]%s = %s" % ( player.name, _animal, opponent.name, pray, distance)
+                dist += 1
                 # else:
                 #     dist -= 10 * distance
     return dist
 
-# def in_danger(player, opponent, animal="tiger"):
-#     """
-#     check if a dangerous enemy is very close
-#     """
-#     in_danger = 0
-#     for hostile in opponent:
-#         if not opponent[hostile].is_dead:
-#             if opponent[hostile] >  player[animal]:
-#                 if player[animal].distance_from(opponent[hostile]) <=3:
-#                     in_danger -= 1
-#                     print "[%s]%s is in DANGER from [%s]%s = %s" % ( player.name, animal, opponent.name, opponent[hostile], in_danger)
+def in_danger(player, opponent, animal="tiger"):
+    """
+    check if a dangerous enemy is very close
+    """
+    dangerLevel = {
+        'tiger': 5,
+        'elephant': 5,
+        'mouse': 2,
+        'wolf': 2,
+    }
+    in_danger = 0
+    if player[animal].is_dead:
+        return in_danger
+    for hostile in opponent:
+        if not opponent[hostile].is_dead:
+            if opponent[hostile] >  player[animal]:
+                if player[animal].distance_from(opponent[hostile]) <=3:
+                    in_danger += 1 * dangerLevel[animal]
+                    print "[%s]%s is in DANGER from [%s]%s = %s" % ( player.name, animal, opponent.name, opponent[hostile], in_danger)
 
-#     return in_danger
+    return in_danger
 
 # def hunted(player, opponent):
 #     """

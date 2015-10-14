@@ -15,7 +15,7 @@ class DeadAnimalException(Exception):
 
 
 def get_board_string_state(game):
-    return game.display_board(raw=True).replace('   ', '.')\
+    return game.display_board(raw=True, no_print=True).replace('   ', '.')\
     .replace(' ', '').replace('den','d').replace('DEN','D')\
     .replace('|','').replace('*', '').strip()
 
@@ -89,14 +89,14 @@ class move_tracker(object):
 
         # append at the end
         self.move_log.append(self.curr_move)
-        print "(%s)[%s] moved from %s to %s, old content = {%s}" % (_who, _who.owner, _from, _where, _captured_animal)
+        # print "(%s)[%s] moved from %s to %s, old content = {%s}" % (_who, _who.owner, _from, _where, _captured_animal)
 
     def free_captured(self):
         self.captured.is_dead = False
 
     def revert(self):
         ''' return the reverted move'''
-        print "rewinding last move..."
+        # print "rewinding last move..."
         # undo a move
         if not self.move_log:
             print "No move to rewind"
@@ -132,7 +132,7 @@ class move_tracker(object):
                     staged_board[r-1][c-1] = player.__dict__[''+_animal]
         # print staged_board
 
-        self.game.display_board(_board=staged_board, raw=_raw)
+        # self.game.display_board(_board=staged_board, raw=_raw)
 
 
 tigerAscii = '''

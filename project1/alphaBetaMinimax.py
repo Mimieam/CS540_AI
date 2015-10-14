@@ -1,4 +1,5 @@
 from sef import *
+from sef2 import *
 from helpers import *
 import time
 import traceback
@@ -30,16 +31,31 @@ def _sef(board, player, opponent):
 
     res = 0
 
-    # good for me
-    res += 2 * distance_from_den(player, opponent)
-    res += remaining_pieces(player, None)
-    res += can_capture(player, opponent)
+    # # good for me
+    # dist = distance_from_den(player, opponent)
+    # print "\tdistance_from_den = %s" % dist
+    # rem = remaining_pieces(player, None)
+    # print "\tremaining_pieces = %s" % rem
+    # cap = can_capture(player, opponent)
+    # print "\tcan_capture = %s" % cap
 
-    # good for opponent
-    res -= 2 * distance_from_den(opponent, player)
-    res -= remaining_pieces(opponent, None)
-    res += can_capture(player, opponent)
-    # res += can_be_captured(player, opponent) # return netagive number
+    # res -= dist
+    # res += rem
+    # res += cap
+
+    # # good for opponent
+    # # res -=  5*in_danger(player, opponent, "tiger")
+    # # res += distance_from_den(opponent, player)
+    # # res -= remaining_pieces(opponent, None)
+    # # res += can_capture(player, opponent)
+    # can_cap = can_be_captured(player, opponent)
+    # print "\tcan_be_captured = %s" % can_cap
+    # res -= can_cap # return netagive number
+
+    res += piece_importance(player, opponent, "tiger")
+    res += piece_importance(player, opponent, "elephant")
+    res += piece_importance(player, opponent, "mouse")
+    res += piece_importance(player, opponent, "wolf")
     # res -= can_capture(opponent, player)
 
 
@@ -47,7 +63,6 @@ def _sef(board, player, opponent):
     # res += 10 * apply_to_both(board, [player, opponent], remaining_pieces)
     # # sum of the linear distance from each piece to the opponent den
     # res += apply_to_both(board, [player, opponent], distance_from_den)
-    # res +=  5*in_danger(player, opponent, "tiger")
     # res +=  5*in_danger(player, opponent, "elephant")
     # res +=  2*in_danger(player, opponent, "mouse")
     # res +=  2*in_danger(player, opponent, "wolf")
@@ -78,6 +93,10 @@ def available_moves(game, player, str_coordinate=None):
         # print moves
         # moves += [move for move in _moves if _ani > game._board[move[][0] - 1][item[1] - 1]]]
         # print moves
+
+    moves.sort(key=lambda tup: tup[0], reverse=False)
+    moves.sort(key=lambda tup: tup[1], reverse=False)  # prioritize going down
+    # print moves.sort(key=lambda tup: tup[2], reverse=False)
     return moves
 
 
@@ -92,6 +111,10 @@ def get_actual_neighbor(cur_row=0, cur_col=0, str_loc=None):
     }
     neighbor = []
     [neighbor.append(item) for item in _neighbor.values() if item]
+
+    # print neighbor
+    neighbor.sort(key=lambda tup: tup[0], reverse=False)
+
     return neighbor
 
 count = 0
@@ -105,9 +128,11 @@ def alphaBetaMinimax(game, alpha, beta, level, depth, player, currentMove):
     game = node - current board state
     '''
     str_state = get_board_string_state(game)
-    if str_state in TRANSPOSITION_TABLE:
-        print TRANSPOSITION_TABLE[str_state]
-        return TRANSPOSITION_TABLE[str_state]
+    if str_state in TRANSPOSITION_TABLE :
+        # print TRANSPOSITION_TABLE[str_state]
+        if currentMove != None:
+            # print "STATE FOUND IN TRANSPOSITION_TABLE", str_state
+            return TRANSPOSITION_TABLE[str_state][0], currentMove
     try:
         global count
         count += 1
@@ -119,66 +144,54 @@ def alphaBetaMinimax(game, alpha, beta, level, depth, player, currentMove):
         # time.sleep(2)
         # print children, level
         # game.display_board()
-        print "%s at level %s - after last move %s \n\n available moves(children) : \n\t\t%s" %(player.name, level, currentMove, children)
+        # print "%s at level %s - after last move %s \n\n available moves(children) : \n\t\t%s" %(player.name, level, currentMove, children)
         if level == depth:
             print "LEAF LEVEL"
             _sef_ref = _sef(game, player, other_player(player, game))
-            print "SEF =%s" % _sef_ref
+            # print  "CURRENT PLAYER = ", player.name,"SEF =%s" % _sef_ref
             TRANSPOSITION_TABLE[get_board_string_state(game)] = (_sef_ref, currentMove)
             return _sef_ref, currentMove
         elif level%2 == 0:  # MAXIMIZING NODE
             value = -1000
             for idx, child in enumerate(children):  # child is a move  for the current player ('tiger', 4, 3)
-                print "CURRENT PLAYER = ", game._find_whose_turn()
-                print "******************=START Exploring Child = %s(sef val = %s) GAME PLY= %s =======================>" % (child, value, game.plys)
+                # print "CURRENT PLAYER = ", game._find_whose_turn()
+                # print "******************=START Exploring Child = %s(sef val = %s) GAME PLY= %s =======================>" % (child, value, game.plys)
                 status = game._move(player[child[0]], new_row=child[1], new_col=child[2])
-                print 'status' , status
+                # print 'status' , status
                 if status:
-                    # print "current move =  ", child
                     rval, rmov = alphaBetaMinimax(game, value, 1000,level + 1, depth, other_player(player, game), child)
                     children[idx] += (rval,)
-                    # final_children = children[idx]
-                    if (rval > value):
+                    if (rval >= value):
                         value = rval
                         final_children = children[idx]
                         TRANSPOSITION_TABLE[get_board_string_state(game)] = (value, children[idx])
-                        # __move = rmov
                     game.undo()
-                    # game.is_gameover = False
-                        # self.is_gameover = False
 
                 else:
                     print "Child %s [%s] skiped - This animal can't perform that move " % (child, player.name)
-                print "******************=DONE Exploring Child = %s(sef val = %s) GAME PLY= %s =======================>" % (child, value, game.plys)
-
-            # final_children = [child for child in children if child[3] != None]  # remove non visited children
-            # final_children.sort(key=lambda tup: tup[3], reverse=True)  # put max node up front
-            # print "MAXIMIZING\n\n", children, "\n\nactual move\n\n", final_children,"\n\n"
-            print "MAXIMIZING Node => %s\n\t %s" %(children, final_children)
+                # print "******************=DONE Exploring Child = %s(sef val = %s) GAME PLY= %s =======================>" % (child, value, game.plys)
+            print "MAXIMIZING Node @ lvl %s=> %s\n\t %s" %(level, children, final_children)
         else:  # MINIMIZING NODE
             value = 1000
             for idx, child in enumerate(children):
                 # print "odd level", player.name, child
-                print "CURRENT PLAYER = ", game._find_whose_turn()
-                print "******************=START Exploring Child = %s(sef val = %s)=======================>" % (child, value)
+                # print "CURRENT PLAYER = ", game._find_whose_turn()
+                # print "******************=START Exploring Child = %s(sef val = %s)=======================>" % (child, value)
                 status = game._move(player[child[0]], new_row=child[1], new_col=child[2])
-                print 'status' , status
+                # print 'status' , status
                 if status:
                     rval, rmov = alphaBetaMinimax(game, -1000 , value, level + 1, depth, other_player(player, game), child)
                     children[idx] += (rval,)
-                    if (rval < value):
+                    if (rval <= value):
                         value = rval
                         final_children = children[idx]
-                        TRANSPOSITION_TABLE[get_board_string_state(game)] = (value, children[idx])
+                        # TRANSPOSITION_TABLE[get_board_string_state(game)] = (value, children[idx])
                         # __move = rmov
                     game.undo()
                 else:
                     print "Child %s [%s] skiped - This animal can't perform that move " % (child, player)
-                print "******************=DONE Exploring Child = %s(sef val = %s)=======================>" % (child, value)
-            # final_children = [child for child in children if child[3] != None]  # remove non visited children
-            # final_children.sort(key=lambda tup: tup[3])  # put min node up front
-            # print "MINIMIZING\n\n", children, "\n\nactual move\n\n", final_children,"\n\n"
-            print "MINIMIZINGNode => %s\n\t %s" %(children, final_children)
+                # print "******************=DONE Exploring Child = %s(sef val = %s)=======================>" % (child, value)
+            print "MINIMIZING Node  @ lvl %s=> %s\n\t %s" %(level,children, final_children)
 
         game.is_gameover = False
         # print "value = %s - child =  %s" % (level, player.name)
@@ -187,7 +200,7 @@ def alphaBetaMinimax(game, alpha, beta, level, depth, player, currentMove):
         return value, final_children
     except Exception, e:
         print traceback.format_exc(e)
-        print "node examined ", count
+        # print "node examined ", count
 
 if __name__ == '__main__':
     from AnimalChecker import *

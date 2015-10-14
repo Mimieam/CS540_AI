@@ -16,7 +16,7 @@ from helpMenu import parser
 
 from helpers import *
 from minimax import minimax, available_moves
-from alphaBetaMinimax import alphaBetaMinimax, available_moves
+from alphaBetaMinimax import alphaBetaMinimax, available_moves, count
 from timeit import default_timer as timer
 
 from sef import *
@@ -25,18 +25,18 @@ from sef import *
 LOGGER = logging.getLogger("Animal_checker")
 LOGGER.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler("animal_checker2.log", mode='w')
-fh.setLevel(logging.DEBUG)
+# fh = logging.FileHandler("./animal_checker2.log", mode='w')
+# fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 # create formatter and add it to the handlers
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)
-fh.setFormatter(formatter)
+# fh.setFormatter(formatter)
 # add the handlers to LOGGER
 LOGGER.addHandler(ch)
-LOGGER.addHandler(fh)
+# LOGGER.addHandler(fh)
 
 
 INITIAL_LOCATIONS = {
@@ -153,8 +153,8 @@ class Animal(object):
             self.neighbor = []
             [self.neighbor.append(item) for item in _neighbor.values() if item and self > _board[item[0] - 1][item[1] - 1]]
             # print _neighbor, self.neighbor
-            LOGGER.debug("Actual Available Moves = %s" % [get_alpha_numeric_coordinates(*x) +" -> "+str(x) for x in self.neighbor])
-            LOGGER.debug( "(%s)[%s] can move to %s ? = %s" % (self,self.owner,(new_row, new_col),(new_row, new_col) in self.neighbor))
+            # LOGGER.debug("Actual Available Moves = %s" % [get_alpha_numeric_coordinates(*x) +" -> "+str(x) for x in self.neighbor])
+            # LOGGER.debug( "(%s)[%s] can move to %s ? = %s" % (self,self.owner,(new_row, new_col),(new_row, new_col) in self.neighbor))
 
             return ((new_row, new_col) in self.neighbor, (new_row, new_col))
         except Exception, e:
@@ -331,11 +331,13 @@ class AnimalChecker(object):
                 _board[row].append('   ')
         return _board
 
-    def display_board(self, _board=[], raw=False):
+    def display_board(self, _board=[], raw=False, no_print=False):
         if not _board:
             _board = self._board
         current_player = self._find_whose_turn()
-        board_str = "\n[==============( %s Turn - total moves = %s )==============]\n\n" % (current_player, self.plys)
+        board_str = ""
+        if not raw:
+            board_str = "\n[==============( %s Turn - total ply = %s )==============]\n\n" % (current_player, self.plys)
         for row_index in xrange(0, len(_board)):
             row = _board[row_index]
 
@@ -367,9 +369,11 @@ class AnimalChecker(object):
                 else:
                     curren_col += '' + str(col) + '|'
             board_str += '%s\n' % curren_col
-
-        board_str += "\n[======================================]\n"
-        LOGGER.info(board_str)
+        if not raw:
+            board_str += "\n[==================================================]\n"
+        # LOGGER.info(board_str)
+        if not no_print:
+            print board_str
         return board_str
 
     def get_item_at(self, row, col):
@@ -389,14 +393,22 @@ class AnimalChecker(object):
         if isinstance(currently_on_tile, Animal):  # check one of the player in on the wining tile
             if currently_on_tile.owner == 'player1':
                 print "WE HAVE A WINNER !!", currently_on_tile.owner.upper(), "WON !!"
-                game.is_gameover = True
+                self.is_gameover = True
                 return True
         currently_on_tile = self._board[8][3]
         if isinstance(currently_on_tile, Animal):  # check one of the player in on the wining tile
             if currently_on_tile.owner == 'player2':
                 print "WE HAVE A WINNER !!", currently_on_tile.owner.upper(), "WON !!"
-                game.is_gameover = True
+                self.is_gameover = True
                 return True
+
+        for player in self.players:
+            opponent = [p for p in self.players if player != p]
+            if all(player[animal].is_dead == True for animal in player):
+                print "WE HAVE A WINNER !!", opponent[0].name.upper(), "WON !!"
+                return True
+
+
         return False
 
     def _move_animal(self, animal, where):
@@ -423,7 +435,10 @@ class AnimalChecker(object):
             # else:
             #     LOGGER.warning("Waiting on %s to play ..." % self._find_whose_turn())
         except OutOfBoardException, e:
-            print str(e)
+            print traceback.format_exc(e)
+
+    def ai_move(self, who, new_row=None, new_col=None, sef=0, player=None):
+        return self._move(player[who], None, new_row, new_col)
 
     def _move(self, who, new_location=None, new_row=None, new_col=None):
         try:
@@ -437,14 +452,14 @@ class AnimalChecker(object):
 
             cur_player = self._find_whose_turn()
             if who.owner is not cur_player:
-                LOGGER.warning("Waiting on %s to play ..." % cur_player)
+                print "Waiting on %s to play ..." % cur_player
                 # self.display_board()
                 return False
             old_location = who.location
             status, (row, col) = who.can_move_to(new_location, new_row, new_col, self._board)
             # print status
             if not status:
-                LOGGER.debug("[%s](%s) can't move to %s" % (who._type, who.owner, new_location))
+                print "[%s](%s) can't move to %s" % (who._type, who.owner, new_location)
                 self.display_board()
                 return False
             # print who, ">", self.get_item_at(row, col)
@@ -471,7 +486,7 @@ class AnimalChecker(object):
                             self._move_animal(who,  get_alpha_numeric_coordinates(new_row, new_col))
 
                     else:
-                        LOGGER.debug("can't do this - %s , %s" % (res, who.owner is not animal_on_tile.owner))
+                        print "can't do this - %s , %s" % (res, who.owner is not animal_on_tile.owner)
                         return False
             else:  # tile was empty ... just move up there if you can
                 if new_location:
@@ -494,9 +509,9 @@ class AnimalChecker(object):
 
     def undo(self):
         ''' undo a move using the move_tracker plugin '''
-        l_move = self.last_move
+        # l_move = self.last_move
         self.last_move.revert()
-        LOGGER.warning(l_move)
+        # LOGGER.warning(l_move)
         if self.is_gameover == True:
             self.is_gameover = False
 
@@ -519,11 +534,11 @@ if __name__ == '__main__':
             ('mouse', 'down'),
             ('elephant', 'down'),
             ('elephant', 'down'),
-            ('elephant', 'left'),
-            ('elephant', 'left'),
-            ('tiger', 'right'),
-            ('mouse', 'down'),
             ('wolf', 'right'),
+            ('elephant', 'left'),
+            ('tiger', 'down'),
+            ('mouse', 'down'),
+            ('elephant', 'left'),
             ('wolf', 'down'),
             ('mouse', 'down'),
         ],
@@ -549,9 +564,11 @@ if __name__ == '__main__':
             sys.exit()
 
         args = parser.parse_args()
-        game = AnimalChecker(rows=9, cols=7, starting_player=2)
+        startingP = int(args.FirstPlayer[0])
+        game = AnimalChecker(rows=9, cols=7, starting_player=startingP)
         game.setup()
         p1, p2 = game.get_players()
+
         player = {
             "1": p1,
             "2": p2,
@@ -576,7 +593,7 @@ if __name__ == '__main__':
                     break;
             else:
 
-                if game.plys < 13 :
+                if game.plys < 10 :
                     ani, direction = opening_book['offense'][(_next)%len(opening_book['offense'])]
                     while not game.move(p2[ani], direction):
                         _next+=1
@@ -587,13 +604,15 @@ if __name__ == '__main__':
 
                     start = timer()
                     # _, bestMove = minimax(game, 0, 4, p2, None)
-                    _, bestMove = alphaBetaMinimax(game, -1000, 1000, 0, 3, p2, None)
+                    _, bestMove = alphaBetaMinimax(game, -1000, 1000, 0, 4, p2, None)  # 2 or 4 ( not 3) for depth
                     end = timer()
-                    bestMove = (p2[bestMove[0]], None,)+bestMove[1:-1]
-                    print bestMove
-                    print game._move(*bestMove)
+                    # print bestMove
+                    # bestMove = (p2[bestMove[0]], None,)+bestMove[1:-1]
+                    # print bestMove
+                    game.ai_move(player=p2, *bestMove)
+                    # print game._move(*bestMove)
                     print " Total time %s" % (end - start)
-
+                    alphaBetaMinimax.count = 0
                 game._check_winner_state()
                 if game.is_gameover:
                     break;
