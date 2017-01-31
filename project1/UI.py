@@ -26,22 +26,27 @@ MARGIN = 5
 # Create a 2 dimensional array. A two dimensional
 # array is simply a list of lists.
 grid = []
-for row in range(10):
+for row in range(9):
     # Add an empty array that will hold each cell
     # in this row
     grid.append([])
-    for column in range(10):
+    for column in range(7):
         grid[row].append(0)  # Append a cell
 
 # Set row 1, cell 5 to one. (Remember rows and
 # column numbers start at zero.)
-grid[0][0] = 1
+grid[0][1] = 1
+grid[0][-2] = 1
+grid[1][2] = 1
+grid[1][-3] = 1
+grid[0][3] = 1
 
 # Initialize pygame
 pygame.init()
 
 # Set the HEIGHT and WIDTH of the screen
-WINDOW_SIZE = [255, 255]
+print (HEIGHT + MARGIN) * 9
+WINDOW_SIZE = [(WIDTH + MARGIN) * 7 + MARGIN , (WIDTH + MARGIN) * 9 + MARGIN]
 screen = pygame.display.set_mode(WINDOW_SIZE)
 
 # Set title of screen
@@ -68,12 +73,13 @@ while not done:
             grid[row][column] = 1
             print("Click ", pos, "Grid coordinates: ", row, column)
 
+
     # Set the screen background
     screen.fill(BLACK)
 
     # Draw the grid
-    for row in range(10):
-        for column in range(10):
+    for row in range(9):
+        for column in range(7):
             color = WHITE
             if grid[row][column] == 1:
                 color = GREEN
